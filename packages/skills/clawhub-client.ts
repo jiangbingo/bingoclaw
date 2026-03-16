@@ -216,12 +216,16 @@ export class ClawHubClient {
         return response
       } catch (error) {
         lastError = error as Error
-        if (i < this.retries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)))
+        // 最后一次重试，直接抛出错误
+        if (i === this.retries - 1) {
+          throw lastError
         }
+        // 否则等待后继续重试
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)))
       }
     }
 
+    // 理论上不会到达这里，但为了类型安全
     throw lastError || new Error('Unknown error')
   }
 }
