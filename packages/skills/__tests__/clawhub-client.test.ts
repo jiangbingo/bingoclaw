@@ -47,7 +47,8 @@ describe('ClawHubClient', () => {
     })
 
     it('should handle search errors', async () => {
-      global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'))
+      // Mock 所有重试都失败
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
 
       await expect(client.searchSkills({ query: 'test' })).rejects.toThrow('Network error')
     })
@@ -196,8 +197,11 @@ describe('ClawHubClient', () => {
 
   describe('retry mechanism', () => {
     it('should retry on failure', async () => {
+      // 客户端配置 retries: 2，意味着总共会尝试 3 次
+      // 所以前 2 次失败，第 3 次成功
       global.fetch = vi
         .fn()
+        .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({

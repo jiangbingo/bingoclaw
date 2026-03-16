@@ -155,10 +155,15 @@ describe('VersionRollback', () => {
       const skillDir = path.join(testDir, 'test-skill')
       fs.mkdirSync(skillDir, { recursive: true })
 
+      // 先记录版本，确保 skill 存在
       await rollback.recordVersion('test-skill', '1.0.0', {})
 
-      await rollback.createSnapshot('test-skill', 'Snapshot 1')
-      await rollback.createSnapshot('test-skill', 'Snapshot 2')
+      // 创建两个快照
+      const snapshot1 = await rollback.createSnapshot('test-skill', 'Snapshot 1')
+      expect(snapshot1.id).toBeDefined()
+
+      const snapshot2 = await rollback.createSnapshot('test-skill', 'Snapshot 2')
+      expect(snapshot2.id).toBeDefined()
 
       const snapshots = await rollback.listSnapshots('test-skill')
 
