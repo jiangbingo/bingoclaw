@@ -1,0 +1,448 @@
+openapi: 3.0.0
+info:
+  title: bingoClaw API
+  description: 开发者的 AI 助手 - 技能市场 API
+  version: 1.0.0
+  contact:
+    name: jiangbingo
+    email: jiangbingo@hotmail.com
+    url: https://github.com/jiangbingo/bingoclaw
+
+servers:
+  - url: https://bingoclaw.vercel.app/api
+    description: 生产环境
+  - url: http://localhost:3000/api
+    description: 开发环境
+
+paths:
+  /skills/search:
+    get:
+      summary: 搜索技能
+      description: 根据关键词、分类、排序等条件搜索技能
+      tags:
+        - 技能市场
+      parameters:
+        - name: q
+          in: query
+          description: 搜索关键词
+          required: false
+          schema:
+            type: string
+            example: "天气"
+        - name: category
+          in: query
+          description: 技能分类
+          required: false
+          schema:
+            type: string
+            enum: [development, productivity, analytics, entertainment, integration]
+            example: "productivity"
+        - name: sort
+          in: query
+          description: 排序方式
+          required: false
+          schema:
+            type: string
+            enum: [rating, downloads, updated]
+            default: rating
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每页数量
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+                  total:
+                    type: integer
+                    description: 总数量
+                    example: 100
+                  page:
+                    type: integer
+                    description: 当前页码
+                    example: 1
+                  hasMore:
+                    type: boolean
+                    description: 是否有更多
+                    example: true
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /skills/{id}:
+    get:
+      summary: 获取技能详情
+      description: 根据 ID 获取技能的详细信息
+      tags:
+        - 技能市场
+      parameters:
+        - name: id
+          in: path
+          description: 技能 ID
+          required: true
+          schema:
+            type: string
+            example: "weather-query"
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: 安装技能
+      description: 安装指定技能到用户环境
+      tags:
+        - 技能管理
+      parameters:
+        - name: id
+          in: path
+          description: 技能 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 安装成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: 卸载技能
+      description: 从用户环境卸载指定技能
+      tags:
+        - 技能管理
+      parameters:
+        - name: id
+          in: path
+          description: 技能 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 卸载成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /skills/{id}/update:
+    post:
+      summary: 更新技能
+      description: 更新指定技能到最新版本
+      tags:
+        - 技能管理
+      parameters:
+        - name: id
+          in: path
+          description: 技能 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /skills/updates:
+    get:
+      summary: 检查技能更新
+      description: 检查所有已安装技能是否有更新
+      tags:
+        - 技能管理
+      responses:
+        '200':
+          description: 检查成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCheck'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 技能 ID
+          example: "weather-query"
+        name:
+          type: string
+          description: 技能名称
+          example: "天气查询"
+        description:
+          type: string
+          description: 技能描述
+          example: "实时查询全球天气，支持中英文"
+        icon:
+          type: string
+          description: 技能图标（emoji）
+          example: "🌤️"
+        rating:
+          type: number
+          format: float
+          description: 评分（0-5）
+          example: 4.5
+        downloads:
+          type: integer
+          description: 下载量
+          example: 1200
+        category:
+          type: string
+          description: 分类
+          example: "productivity"
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签
+          example: ["天气", "生活", "实用"]
+
+    SkillDetail:
+      allOf:
+        - $ref: '#/components/schemas/Skill'
+        - type: object
+          properties:
+            author:
+              type: string
+              description: 作者
+              example: "@developer"
+            version:
+              type: string
+              description: 版本号
+              example: "1.2.0"
+            homepage:
+              type: string
+              description: 项目主页
+              example: "https://github.com/example/weather-skill"
+            repository:
+              type: string
+              description: 代码仓库
+              example: "https://github.com/example/weather-skill"
+            readme:
+              type: string
+              description: README 文档
+              example: "# 天气查询\n\n实时查询全球天气..."
+            examples:
+              type: array
+              items:
+                $ref: '#/components/schemas/SkillExample'
+              description: 使用示例
+            versions:
+              type: array
+              items:
+                $ref: '#/components/schemas/SkillVersion'
+              description: 版本历史
+            configSchema:
+              type: object
+              description: 配置 Schema
+            lastUpdated:
+              type: string
+              format: date-time
+              description: 最后更新时间
+              example: "2026-03-10"
+
+    SkillExample:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 示例标题
+          example: "查询天气"
+        description:
+          type: string
+          description: 示例描述
+          example: "查询指定城市的天气"
+        code:
+          type: string
+          description: 代码示例
+          example: "const weather = await getWeather('北京')"
+        output:
+          type: string
+          description: 输出示例
+          example: "北京：晴，25°C"
+
+    SkillVersion:
+      type: object
+      properties:
+        version:
+          type: string
+          description: 版本号
+          example: "1.2.0"
+        releasedAt:
+          type: string
+          format: date-time
+          description: 发布时间
+          example: "2026-03-10"
+        changelog:
+          type: string
+          description: 更新日志
+          example: "- 新增空气质量查询\n- 优化性能"
+        breaking:
+          type: boolean
+          description: 是否有破坏性变更
+          example: false
+
+    InstallResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 是否成功
+          example: true
+        installedPath:
+          type: string
+          description: 安装路径
+          example: "/skills/weather-query"
+        config:
+          type: object
+          description: 配置信息
+        error:
+          type: string
+          description: 错误信息（如果失败）
+          example: null
+
+    UpdateResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 是否成功
+          example: true
+        oldVersion:
+          type: string
+          description: 旧版本
+          example: "1.0.0"
+        newVersion:
+          type: string
+          description: 新版本
+          example: "1.2.0"
+        migrations:
+          type: array
+          items:
+            type: string
+          description: 迁移步骤
+          example: ["更新配置格式", "添加新字段"]
+        error:
+          type: string
+          description: 错误信息（如果失败）
+          example: null
+
+    UpdateCheck:
+      type: object
+      properties:
+        hasUpdates:
+          type: boolean
+          description: 是否有更新
+          example: true
+        updates:
+          type: array
+          items:
+            type: object
+            properties:
+              skillId:
+                type: string
+                description: 技能 ID
+                example: "weather-query"
+              currentVersion:
+                type: string
+                description: 当前版本
+                example: "1.0.0"
+              latestVersion:
+                type: string
+                description: 最新版本
+                example: "1.2.0"
+              updateAvailable:
+                type: boolean
+                description: 是否有更新
+                example: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 错误类型
+          example: "SkillNotFound"
+        message:
+          type: string
+          description: 错误信息
+          example: "Skill not found: weather-query"
+
+  responses:
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "SkillNotFound"
+            message: "Skill not found: weather-query"
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "InternalServerError"
+            message: "Failed to process request"
+
+tags:
+  - name: 技能市场
+    description: 技能搜索和浏览
+  - name: 技能管理
+    description: 技能安装、更新和卸载

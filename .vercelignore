@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+*.log
+.env
+.env.local
+.env.*.local
+coverage
+dist
+build
+.pnpm-store
+pnpm-lock.yaml.bak
