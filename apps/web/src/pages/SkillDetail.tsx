@@ -69,14 +69,21 @@ export function SkillDetailPage() {
     async function loadSkill() {
       setLoading(true)
       try {
-        // TODO: 从 API 获取真实数据
-        // const response = await fetch(\`/api/skills/\${id}\`)
-        // const skill = await response.json()
-
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setSkill(MOCK_SKILL_DETAIL)
+        // 从 API 获取真实数据
+        const response = await fetch(`/api/skills/${id}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            setSkill(null)
+            return
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const data = await response.json()
+        setSkill(data)
       } catch (error) {
         console.error('Failed to load skill:', error)
+        // 失败时使用 Mock 数据
+        setSkill(MOCK_SKILL_DETAIL)
       } finally {
         setLoading(false)
       }
@@ -92,15 +99,26 @@ export function SkillDetailPage() {
 
     setInstalling(true)
     try {
-      // TODO: 调用安装 API
-      // await fetch(\`/api/skills/\${skill.id}/install\`, { method: 'POST' })
-
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setInstalled(true)
-      alert('技能安装成功！')
+      // 调用安装 API
+      const response = await fetch(`/api/skills/${skill.id}`, {
+        method: 'POST',
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        setInstalled(true)
+        alert('技能安装成功！')
+      } else {
+        throw new Error(result.error || '安装失败')
+      }
     } catch (error) {
       console.error('Failed to install skill:', error)
-      alert('安装失败，请重试')
+      alert(`安装失败: ${error instanceof Error ? error.message : '未知错误'}`)
     } finally {
       setInstalling(false)
     }

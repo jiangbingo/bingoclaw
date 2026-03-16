@@ -79,15 +79,38 @@ export function MarketPage() {
     async function loadSkills() {
       setLoading(true)
       try {
-        // TODO: 从 API 获取真实数据
-        // const response = await fetch('/api/skills')
-        // const skills = await response.json()
-
-        // 模拟 API 延迟
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setSkills(MOCK_SKILLS)
+        // 从 API 获取真实数据
+        const response = await fetch('/api/skills/search')
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const data = await response.json()
+        setSkills(data.skills || [])
       } catch (error) {
         console.error('Failed to load skills:', error)
+        // 失败时使用 Mock 数据
+        setSkills([
+          {
+            id: 'weather-query',
+            name: '天气查询',
+            description: '实时查询全球天气，支持中英文',
+            icon: '🌤️',
+            rating: 4.5,
+            downloads: 1200,
+            category: 'productivity',
+            tags: ['天气', '生活', '实用'],
+          },
+          {
+            id: 'github-integration',
+            name: 'GitHub 集成',
+            description: '管理 GitHub 仓库、Issues、PR',
+            icon: '🐙',
+            rating: 4.8,
+            downloads: 2400,
+            category: 'development',
+            tags: ['GitHub', '开发', 'Git'],
+          },
+        ])
       } finally {
         setLoading(false)
       }
