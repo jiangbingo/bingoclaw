@@ -1,27 +1,7 @@
 // packages/core/src/skills.ts
-// 技能核心模块
+// 技能注册器单例
 
-export interface SkillDefinition {
-  id: string;
-  name: string;
-  triggers: string[];
-  handler: Function;
-}
+import { SkillRegistry } from './skill-registry'
 
-export class SkillRegistry {
-  private skills: Map<string, SkillDefinition> = new Map();
-
-  register(skill: SkillDefinition) {
-    this.skills.set(skill.id, skill);
-  }
-
-  get(id: string) {
-    return this.skills.get(id);
-  }
-
-  list() {
-    return Array.from(this.skills.values());
-  }
-}
-
-export default SkillRegistry;
+// 导出单例实例
+export const skillRegistry = new SkillRegistry()

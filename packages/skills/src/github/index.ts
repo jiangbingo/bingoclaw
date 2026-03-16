@@ -1,13 +1,16 @@
 // packages/skills/src/github/index.ts
 // GitHub 技能
 
-export const githubSkill = {
-  id: 'github',
-  name: 'GitHub 技能',
-  triggers: ['github', 'git', 'gh'],
-  handler: async (command: string) => {
-    return { result: 'ok', command };
-  }
-};
+import { Skill } from '@bingoclaw/core'
 
-export default githubSkill;
+export const githubSkill: Skill = {
+  id: 'github',
+  name: 'GitHub 集成',
+  description: 'GitHub 仓库、Issue、PR 管理',
+  triggers: ['github', 'git', '仓库'],
+  handler: async (message: string) => {
+    return `GitHub 处理: ${message}`
+  },
+}
+
+export default githubSkill

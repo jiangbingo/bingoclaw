@@ -1,21 +1,35 @@
 // packages/core/src/ai.ts
-// AI 核心模块
+// AI 客户端
 
 export interface AIConfig {
-  model?: string;
-  temperature?: number;
+  provider?: string
+  apiKey?: string
+  model?: string
 }
 
-export class AIEngine {
-  private config: AIConfig;
+export class AIClient {
+  private config: AIConfig
 
   constructor(config: AIConfig = {}) {
-    this.config = config;
+    this.config = {
+      provider: 'bigmodel',
+      model: 'glm-4',
+      ...config,
+    }
   }
 
-  async chat(message: string) {
-    return { response: 'AI response' };
+  /**
+   * 发送消息到 AI
+   */
+  async chat(message: string): Promise<string> {
+    // 简化实现
+    return `AI response to: ${message}`
+  }
+
+  /**
+   * 获取配置
+   */
+  getConfig(): AIConfig {
+    return this.config
   }
 }
-
-export default AIEngine;
